@@ -34,6 +34,7 @@ source .venv/bin/activate
 
 ### Step 2: Install Dependencies
 pip install flask
+
 pip install -e .
 
 Then run:

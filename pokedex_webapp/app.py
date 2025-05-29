@@ -1,0 +1,363 @@
+from flask import Flask, render_template, request, redirect, url_for, flash
+import sqlite3
+import os
+import re
+from data import abilities_data
+from data import pokemon_abilities_data
+from data import pokemon_data
+from data import regions
+from data import types_data
+
+app = Flask(__name__)
+app.secret_key = 'your-secret-key-here'
+
+DATABASE = 'pokedex.db'
+
+def get_db_connection():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    conn = get_db_connection()
+    
+    # Create tables
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS regions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE
+        )
+    ''')
+    
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS types (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            color TEXT
+        )
+    ''')
+    
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS pokemon (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pokedex_number INTEGER NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            form TEXT,
+            average_height REAL,
+            average_weight REAL,
+            legendary BOOLEAN DEFAULT FALSE,
+            region_id INTEGER,
+            base_hp INTEGER,
+            base_attack INTEGER,
+            base_defense INTEGER,
+            base_special_attack INTEGER,
+            base_special_defense INTEGER,
+            base_speed INTEGER,
+            description TEXT,
+            habitat TEXT,
+            FOREIGN KEY (region_id) REFERENCES regions (id)
+        )
+    ''')
+    
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS pokemon_types (
+            pokemon_id INTEGER,
+            type_id INTEGER,
+            is_first_type BOOLEAN DEFAULT TRUE,
+            PRIMARY KEY (pokemon_id, type_id),
+            FOREIGN KEY (pokemon_id) REFERENCES pokemon (id),
+            FOREIGN KEY (type_id) REFERENCES types (id)
+        )
+    ''')
+    
+    # Type effectiveness tables
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS type_effectiveness (
+            attacking_type_id INTEGER,
+            defending_type_id INTEGER,
+            multiplier REAL,
+            PRIMARY KEY (attacking_type_id, defending_type_id),
+            FOREIGN KEY (attacking_type_id) REFERENCES types (id),
+            FOREIGN KEY (defending_type_id) REFERENCES types (id)
+        )
+    ''')
+    
+    # Pokemon abilities
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS abilities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            description TEXT
+        )
+    ''')
+    
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS pokemon_abilities (
+            pokemon_id INTEGER,
+            ability_id INTEGER,
+            is_hidden BOOLEAN DEFAULT FALSE,
+            PRIMARY KEY (pokemon_id, ability_id),
+            FOREIGN KEY (pokemon_id) REFERENCES pokemon (id),
+            FOREIGN KEY (ability_id) REFERENCES abilities (id)
+        )
+    ''')
+    
+    # Insert sample data
+    insert_sample_data(conn)
+    conn.commit()
+    conn.close()
+
+def insert_sample_data(conn):
+    conn.executemany('INSERT OR IGNORE INTO regions (name) VALUES (?)', regions)
+
+    conn.executemany('INSERT OR IGNORE INTO types (name, color) VALUES (?, ?)', types_data)
+
+
+    for ab_id, (name, desc) in enumerate(abilities_data, start=1):
+        conn.execute(
+            '''INSERT OR REPLACE INTO abilities (id, name, description)
+               VALUES (?, ?, ?)''',
+            (ab_id, name, desc)
+        )
+
+    conn.executemany('''INSERT OR IGNORE INTO pokemon 
+                       (pokedex_number, name, form, average_height, average_weight, legendary, region_id, 
+                        base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed,
+                        description, habitat) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', pokemon_data)
+
+    
+    conn.executemany('''INSERT OR IGNORE INTO pokemon_abilities 
+                       (pokemon_id, ability_id, is_hidden) 
+                       VALUES (?, ?, ?)''', pokemon_abilities_data)
+
+@app.route('/')
+def index():
+    return redirect(url_for('pokedex'))
+
+@app.route('/pokedex')
+def pokedex():
+    conn = get_db_connection()
+    
+    # Get all Pokemon with their types
+    pokemon_query = '''
+        SELECT p.id, p.pokedex_number, p.name, p.form, p.legendary,
+               GROUP_CONCAT(t.name || ':' || t.color || ':' || pt.is_first_type, '|') as types
+        FROM pokemon p
+        LEFT JOIN pokemon_types pt ON p.id = pt.pokemon_id
+        LEFT JOIN types t ON pt.type_id = t.id
+        GROUP BY p.id
+        ORDER BY p.pokedex_number
+    '''
+    
+    pokemon_rows = conn.execute(pokemon_query).fetchall()
+    conn.close()
+    
+    # Process the types data
+    pokemon_list = []
+    for row in pokemon_rows:
+        pokemon = dict(row)
+        if pokemon['types']:
+            type_data = []
+            for type_info in pokemon['types'].split('|'):
+                type_name, color, is_first = type_info.split(':')
+                type_data.append({
+                    'name': type_name,
+                    'color': color,
+                    'is_first': bool(int(is_first))
+                })
+            # Sort types so first type comes first
+            type_data.sort(key=lambda x: not x['is_first'])
+            pokemon['type_list'] = type_data
+        else:
+            pokemon['type_list'] = []
+        pokemon_list.append(pokemon)
+    
+    return render_template('pokedex.html', pokemon_list=pokemon_list)
+
+@app.route('/pokemon/<int:pokedex_number>')
+def pokemon_detail(pokedex_number):
+    conn = get_db_connection()
+    
+    # Get Pokemon details
+    pokemon_query = '''
+        SELECT p.*, r.name as region_name
+        FROM pokemon p
+        LEFT JOIN regions r ON p.region_id = r.id
+        WHERE p.pokedex_number = ?
+    '''
+    
+    pokemon = conn.execute(pokemon_query, (pokedex_number,)).fetchone()
+    
+    if not pokemon:
+        flash('Pokemon not found!')
+        return redirect(url_for('pokedex'))
+    
+    # Get Pokemon types
+    types_query = '''
+        SELECT t.name, t.color, pt.is_first_type
+        FROM pokemon_types pt
+        JOIN types t ON pt.type_id = t.id
+        WHERE pt.pokemon_id = ?
+        ORDER BY pt.is_first_type DESC
+    '''
+    
+    types = conn.execute(types_query, (pokemon['id'],)).fetchall()
+    
+    # Get Pokemon abilities
+    abilities_query = '''
+        SELECT a.name, a.description, pa.is_hidden
+        FROM pokemon_abilities pa
+        JOIN abilities a ON pa.ability_id = a.id
+        WHERE pa.pokemon_id = ?
+        ORDER BY pa.is_hidden
+    '''
+    
+    abilities = conn.execute(abilities_query, (pokemon['id'],)).fetchall()
+    
+    # Get type effectiveness (weaknesses and strengths)
+    type_ids = [t['id'] for t in conn.execute('SELECT id FROM types t JOIN pokemon_types pt ON t.id = pt.type_id WHERE pt.pokemon_id = ?', (pokemon['id'],)).fetchall()]
+    
+    weaknesses = []
+    strengths = []
+    if type_ids:
+        # Calculate weaknesses (types that are super effective against this Pokemon)
+        weakness_query = '''
+            SELECT DISTINCT t.name, t.color, te.multiplier
+            FROM type_effectiveness te
+            JOIN types t ON te.attacking_type_id = t.id
+            WHERE te.defending_type_id IN ({}) AND te.multiplier > 1.0
+        '''.format(','.join('?' * len(type_ids)))
+        
+        weaknesses = conn.execute(weakness_query, type_ids).fetchall()
+        
+        # Calculate strengths (types this Pokemon resists)
+        strength_query = '''
+            SELECT DISTINCT t.name, t.color, te.multiplier
+            FROM type_effectiveness te
+            JOIN types t ON te.attacking_type_id = t.id
+            WHERE te.defending_type_id IN ({}) AND te.multiplier < 1.0
+        '''.format(','.join('?' * len(type_ids)))
+        
+        strengths = conn.execute(strength_query, type_ids).fetchall()
+    
+    conn.close()
+    
+    return render_template('pokemon_detail.html', pokemon=pokemon, types=types, abilities=abilities, weaknesses=weaknesses, strengths=strengths)
+
+@app.route('/add_pokemon', methods=['GET', 'POST'])
+def add_pokemon():
+    if request.method == 'POST':
+        pokedex_number = request.form['pokedex_number']
+        name = request.form['name']
+        form = request.form['form'] if request.form['form'] else None
+        height = float(request.form['height']) if request.form['height'] else None
+        weight = float(request.form['weight']) if request.form['weight'] else None
+        legendary = 'legendary' in request.form
+        region_id = int(request.form['region_id']) if request.form['region_id'] else None
+        if not re.fullmatch(r"[A-Za-zÀ-ÿ♀♂'\-\s]+", name):
+            flash("Invalid Pokémon name. Only letters, spaces, hyphens, and gender symbols (♀♂) allowed.")
+            return redirect(url_for('add_pokemon'))
+        
+        # Extended stats
+        base_hp = int(request.form['base_hp']) if request.form['base_hp'] else None
+        base_attack = int(request.form['base_attack']) if request.form['base_attack'] else None
+        base_defense = int(request.form['base_defense']) if request.form['base_defense'] else None
+        base_special_attack = int(request.form['base_special_attack']) if request.form['base_special_attack'] else None
+        base_special_defense = int(request.form['base_special_defense']) if request.form['base_special_defense'] else None
+        base_speed = int(request.form['base_speed']) if request.form['base_speed'] else None
+        description = request.form['description'] if request.form['description'] else None
+        habitat = request.form['habitat'] if request.form['habitat'] else None
+        
+        conn = get_db_connection()
+        try:
+            cursor = conn.execute('''
+                INSERT INTO pokemon (pokedex_number, name, form, average_height, average_weight, legendary, region_id,
+                                   base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed,
+                                   description, habitat)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (pokedex_number, name, form, height, weight, legendary, region_id,
+                  base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed,
+                  description, habitat))
+            
+            pokemon_id = cursor.lastrowid
+            
+            # Add types
+            type1 = request.form.get('type1')
+            type2 = request.form.get('type2')
+            
+            if type1:
+                conn.execute('INSERT INTO pokemon_types (pokemon_id, type_id, is_first_type) VALUES (?, ?, ?)',
+                           (pokemon_id, type1, True))
+            if type2 and type2 != type1:
+                conn.execute('INSERT INTO pokemon_types (pokemon_id, type_id, is_first_type) VALUES (?, ?, ?)',
+                           (pokemon_id, type2, False))
+            
+            # Add abilities
+            ability1 = request.form.get('ability1')
+            ability2 = request.form.get('ability2')
+            hidden_ability = request.form.get('hidden_ability')
+            
+            if ability1:
+                conn.execute('INSERT INTO pokemon_abilities (pokemon_id, ability_id, is_hidden) VALUES (?, ?, ?)',
+                           (pokemon_id, ability1, False))
+            if ability2 and ability2 != ability1:
+                conn.execute('INSERT INTO pokemon_abilities (pokemon_id, ability_id, is_hidden) VALUES (?, ?, ?)',
+                           (pokemon_id, ability2, False))
+            if hidden_ability and hidden_ability not in [ability1, ability2]:
+                conn.execute('INSERT INTO pokemon_abilities (pokemon_id, ability_id, is_hidden) VALUES (?, ?, ?)',
+                           (pokemon_id, hidden_ability, True))
+            
+            conn.commit()
+            flash(f'{name} has been added to the Pokedex!')
+            return redirect(url_for('pokedex'))
+        except sqlite3.IntegrityError:
+            flash('Pokemon with this Pokedex number already exists!')
+        finally:
+            conn.close()
+    
+    # Get regions, types, and abilities for form
+    conn = get_db_connection()
+    regions = conn.execute('SELECT * FROM regions ORDER BY name').fetchall()
+    types = conn.execute('SELECT * FROM types ORDER BY name').fetchall()
+    abilities = conn.execute('SELECT * FROM abilities ORDER BY name').fetchall()
+    conn.close()
+    
+    return render_template('add_pokemon.html', regions=regions, types=types, abilities=abilities)
+
+@app.route('/delete_pokemon/<int:pokedex_number>', methods=['POST'])
+def delete_pokemon(pokedex_number):
+    conn = get_db_connection()
+    
+    # First get the pokemon to check if it exists
+    pokemon = conn.execute('SELECT * FROM pokemon WHERE pokedex_number = ?', (pokedex_number,)).fetchone()
+    
+    if not pokemon:
+        flash('Pokemon not found!')
+        conn.close()
+        return redirect(url_for('pokedex'))
+    
+    try:
+        pokemon_id = pokemon['id']
+        
+        # Delete pokemen(Delete related records first (foreign key constraints))
+        conn.execute('DELETE FROM pokemon_types WHERE pokemon_id = ?', (pokemon_id,))
+        conn.execute('DELETE FROM pokemon_abilities WHERE pokemon_id = ?', (pokemon_id,))
+        
+        # Delete the pokemon
+        conn.execute('DELETE FROM pokemon WHERE id = ?', (pokemon_id,))
+        
+        conn.commit()
+        flash(f'{pokemon["name"]} has been deleted from the Pokedex!')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error deleting Pokemon: {str(e)}')
+    finally:
+        conn.close()
+    
+    return redirect(url_for('pokedex'))
+
+if __name__ == '__main__':
+    if not os.path.exists(DATABASE):
+        init_db()
+    app.run(debug=True)

@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}{{ pokemon.name }} - Pokedex{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('pokedex') }}" class="back-button">← Back to Pokedex</a>
+
+<div class="detail-container">
+    <div class="pokemon-detail-header">
+        <div class="pokemon-image" style="width: 120px; height: 120px; margin: 0 auto 1rem;">
+            <img src="{{ url_for('static', filename='pokemonPictures/' + pokemon.name.lower() + '.avif') }}" 
+                 alt="{{ pokemon.name }}" 
+                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                 onerror="this.src='{{ url_for('static', filename='pokemonPictures/default.png') }}'">
+        </div>
+        
+        <div class="pokemon-detail-number">#{{ "%03d"|format(pokemon.pokedex_number) }}</div>
+        
+        <h1 class="pokemon-detail-name{% if pokemon.legendary %} legendary{% endif %}">
+            {{ pokemon.name }}
+            {% if pokemon.legendary %}⭐{% endif %}
+        </h1>
+        
+        {% if pokemon.form %}
+            <div class="pokemon-form">Form: {{ pokemon.form }}</div>
+        {% endif %}
+        
+        <div class="pokemon-types" style="justify-content: center; margin-top: 1rem;">
+            {% for type in types %}
+                <span class="type-badge" style="background-color: {{ type.color }};">
+                    {{ type.name }}
+                </span>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Basic Information -->
+    <div class="pokemon-stats">
+        {% if pokemon.average_height %}
+        <div class="stat-card">
+            <div class="stat-label">Height</div>
+            <div class="stat-value">{{ pokemon.average_height }} m</div>
+        </div>
+        {% endif %}
+        
+        {% if pokemon.average_weight %}
+        <div class="stat-card">
+            <div class="stat-label">Weight</div>
+            <div class="stat-value">{{ pokemon.average_weight }} kg</div>
+        </div>
+        {% endif %}
+        
+        <div class="stat-card">
+            <div class="stat-label">Legendary</div>
+            <div class="stat-value">{{ "Yes" if pokemon.legendary else "No" }}</div>
+        </div>
+        
+        {% if pokemon.region_name %}
+        <div class="stat-card">
+            <div class="stat-label">Region</div>
+            <div class="stat-value">{{ pokemon.region_name }}</div>
+        </div>
+        {% endif %}
+        
+        {% if pokemon.habitat %}
+        <div class="stat-card">
+            <div class="stat-label">Habitat</div>
+            <div class="stat-value">{{ pokemon.habitat }}</div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Description -->
+    {% if pokemon.description %}
+    <div style="margin: 2rem 0; padding: 1.5rem; background: #f8f9fa; border-radius: 10px;">
+        <h3 style="color: #2c3e50; margin-bottom: 1rem;">Description</h3>
+        <p style="color: #34495e; line-height: 1.6;">{{ pokemon.description }}</p>
+    </div>
+    {% endif %}
+    
+    <!-- Base Stats -->
+    {% if pokemon.base_hp or pokemon.base_attack or pokemon.base_defense or pokemon.base_special_attack or pokemon.base_special_defense or pokemon.base_speed %}
+    <div style="margin: 2rem 0; padding: 1.5rem; background: #f8f9fa; border-radius: 10px;">
+        <h3 style="color: #2c3e50; margin-bottom: 1rem;">Base Stats</h3>
+        <div class="pokemon-stats">
+            {% if pokemon.base_hp %}
+            <div class="stat-card" style="background: #fff;">
+                <div class="stat-label">HP</div>
+                <div class="stat-value" style="color: #e74c3c;">{{ pokemon.base_hp }}</div>
+            </div>
+            {% endif %}
+            
+            {% if pokemon.base_attack %}
+            <div class="stat-card" style="background: #fff;">
+                <div class="stat-label">Attack</div>
+                <div class="stat-value" style="color: #f39c12;">{{ pokemon.base_attack }}</div>
+            </div>
+            {% endif %}
+            
+            {% if pokemon.base_defense %}
+            <div class="stat-card" style="background: #fff;">
+                <div class="stat-label">Defense</div>
+                <div class="stat-value" style="color: #f1c40f;">{{ pokemon.base_defense }}</div>
+            </div>
+            {% endif %}
+            
+            {% if pokemon.base_special_attack %}
+            <div class="stat-card" style="background: #fff;">
+                <div class="stat-label">Sp. Attack</div>
+                <div class="stat-value" style="color: #9b59b6;">{{ pokemon.base_special_attack }}</div>
+            </div>
+            {% endif %}
+            
+            {% if pokemon.base_special_defense %}
+            <div class="stat-card" style="background: #fff;">
+                <div class="stat-label">Sp. Defense</div>
+                <div class="stat-value" style="color: #8e44ad;">{{ pokemon.base_special_defense }}</div>
+            </div>
+            {% endif %}
+            
+            {% if pokemon.base_speed %}
+            <div class="stat-card" style="background: #fff;">
+                <div class="stat-label">Speed</div>
+                <div class="stat-value" style="color: #1abc9c;">{{ pokemon.base_speed }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Abilities -->
+    {% if abilities %}
+    <div style="margin: 2rem 0; padding: 1.5rem; background: #f8f9fa; border-radius: 10px;">
+        <h3 style="color: #2c3e50; margin-bottom: 1rem;">Abilities</h3>
+        <div style="display: grid; gap: 1rem;">
+            {% for ability in abilities %}
+            <div style="background: #fff; padding: 1rem; border-radius: 8px; border-left: 4px solid {% if ability.is_hidden %}#e74c3c{% else %}#3498db{% endif %};">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <strong style="color: #2c3e50;">{{ ability.name }}</strong>
+                    {% if ability.is_hidden %}
+                        <span style="background: #e74c3c; color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">Hidden</span>
+                    {% endif %}
+                </div>
+                {% if ability.description %}
+                <p style="color: #7f8c8d; margin: 0; font-size: 0.9rem;">{{ ability.description }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Type Effectiveness -->
+    <div style="margin: 2rem 0; padding: 1.5rem; background: #f8f9fa; border-radius: 10px;">
+        <h3 style="color: #2c3e50; margin-bottom: 1rem;">Type Effectiveness</h3>
+        
+        {% if weaknesses %}
+        <div style="margin-bottom: 1.5rem;">
+            <h4 style="color: #e74c3c; margin-bottom: 0.8rem;">Weak Against ({{ weaknesses|length }})</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                {% for weakness in weaknesses %}
+                <div style="display: flex; align-items: center; background: #fff; padding: 0.5rem; border-radius: 8px; border: 2px solid #e74c3c;">
+                    <span class="type-badge" style="background-color: {{ weakness.color }}; margin-right: 0.5rem;">
+                        {{ weakness.name }}
+                    </span>
+                    <span style="color: #e74c3c; font-weight: bold;">×{{ weakness.multiplier }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if strengths %}
+        <div>
+            <h4 style="color: #27ae60; margin-bottom: 0.8rem;">Resistant To ({{ strengths|length }})</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                {% for strength in strengths %}
+                <div style="display: flex; align-items: center; background: #fff; padding: 0.5rem; border-radius: 8px; border: 2px solid #27ae60;">
+                    <span class="type-badge" style="background-color: {{ strength.color }}; margin-right: 0.5rem;">
+                        {{ strength.name }}
+                    </span>
+                    <span style="color: #27ae60; font-weight: bold;">×{{ strength.multiplier }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if not weaknesses and not strengths %}
+        <p style="color: #7f8c8d; text-align: center; margin: 0;">Type effectiveness data not available.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Delete Button -->
+    <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #ecf0f1;">
+        <form method="POST" action="{{ url_for('delete_pokemon', pokedex_number=pokemon.pokedex_number) }}" 
+              onsubmit="return confirm('Are you sure you want to delete {{ pokemon.name }}? This action cannot be undone.')">
+            <button type="submit" style="background: #e74c3c; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;" 
+                    onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">
+                🗑️ Delete Pokemon
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

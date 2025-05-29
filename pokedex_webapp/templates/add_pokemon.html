@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Add Pokemon - Pokedex{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('pokedex') }}" class="back-button">← Back to Pokedex</a>
+
+<div class="form-container">
+    <h2 style="text-align: center; color: #2c3e50; margin-bottom: 2rem;">Add New Pokemon</h2>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label for="pokedex_number">Pokedex Number *</label>
+            <input type="number" id="pokedex_number" name="pokedex_number" required min="1">
+        </div>
+        
+        <div class="form-group">
+            <label for="name">Name *</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="form">Form (Optional)</label>
+            <input type="text" id="form" name="form" placeholder="e.g., Alolan, Mega, etc.">
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label for="height">Height (meters)</label>
+                <input type="number" id="height" name="height" step="0.1" min="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="weight">Weight (kg)</label>
+                <input type="number" id="weight" name="weight" step="0.1" min="0">
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label for="type1">Primary Type *</label>
+                <select id="type1" name="type1" required>
+                    <option value="">Select Primary Type</option>
+                    {% for type in types %}
+                        <option value="{{ type.id }}">{{ type.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="type2">Secondary Type (Optional)</label>
+                <select id="type2" name="type2">
+                    <option value="">Select Secondary Type</option>
+                    {% for type in types %}
+                        <option value="{{ type.id }}">{{ type.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="region_id">Region</label>
+            <select id="region_id" name="region_id">
+                <option value="">Select Region</option>
+                {% for region in regions %}
+                    <option value="{{ region.id }}">{{ region.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Base Stats Section -->
+        <div style="border: 2px solid #ecf0f1; border-radius: 10px; padding: 1.5rem; margin: 1.5rem 0;">
+            <h3 style="color: #2c3e50; margin-bottom: 1rem;">Base Stats</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                <div class="form-group">
+                    <label for="base_hp">HP</label>
+                    <input type="number" id="base_hp" name="base_hp" min="1" max="255">
+                </div>
+                
+                <div class="form-group">
+                    <label for="base_attack">Attack</label>
+                    <input type="number" id="base_attack" name="base_attack" min="1" max="255">
+                </div>
+                
+                <div class="form-group">
+                    <label for="base_defense">Defense</label>
+                    <input type="number" id="base_defense" name="base_defense" min="1" max="255">
+                </div>
+                
+                <div class="form-group">
+                    <label for="base_special_attack">Special Attack</label>
+                    <input type="number" id="base_special_attack" name="base_special_attack" min="1" max="255">
+                </div>
+                
+                <div class="form-group">
+                    <label for="base_special_defense">Special Defense</label>
+                    <input type="number" id="base_special_defense" name="base_special_defense" min="1" max="255">
+                </div>
+                
+                <div class="form-group">
+                    <label for="base_speed">Speed</label>
+                    <input type="number" id="base_speed" name="base_speed" min="1" max="255">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Abilities Section -->
+        <div style="border: 2px solid #ecf0f1; border-radius: 10px; padding: 1.5rem; margin: 1.5rem 0;">
+            <h3 style="color: #2c3e50; margin-bottom: 1rem;">Abilities</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                <div class="form-group">
+                    <label for="ability1">Primary Ability</label>
+                    <select id="ability1" name="ability1">
+                        <option value="">Select Ability</option>
+                        {% for ability in abilities %}
+                            <option value="{{ ability.id }}">{{ ability.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ability2">Secondary Ability</label>
+                    <select id="ability2" name="ability2">
+                        <option value="">Select Ability</option>
+                        {% for ability in abilities %}
+                            <option value="{{ ability.id }}">{{ ability.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="hidden_ability">Hidden Ability</label>
+                    <select id="hidden_ability" name="hidden_ability">
+                        <option value="">Select Hidden Ability</option>
+                        {% for ability in abilities %}
+                            <option value="{{ ability.id }}">{{ ability.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3" style="resize: vertical; width: 100%; padding: 0.8rem; border: 2px solid #ecf0f1; border-radius: 8px; font-size: 1rem; font-family: inherit;"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="habitat">Habitat</label>
+            <select id="habitat" name="habitat">
+                <option value="">Select Habitat</option>
+                <option value="Grassland">Grassland</option>
+                <option value="Forest">Forest</option>
+                <option value="Waters-edge">Waters-edge</option>
+                <option value="Sea">Sea</option>
+                <option value="Cave">Cave</option>
+                <option value="Mountain">Mountain</option>
+                <option value="Rough-terrain">Rough-terrain</option>
+                <option value="Urban">Urban</option>
+                <option value="Rare">Rare</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="legendary" name="legendary">
+                <label for="legendary">Legendary Pokemon</label>
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <button type="submit" class="submit-button">Add Pokemon</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

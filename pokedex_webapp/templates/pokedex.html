@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Pokedex - Browse Pokemon{% endblock %}
+
+{% block content %}
+<div class="pokemon-grid">
+    {% for pokemon in pokemon_list %}
+        <div class="pokemon-card-wrapper">
+            <a href="{{ url_for('pokemon_detail', pokedex_number=pokemon.pokedex_number) }}" class="pokemon-card">
+                <div class="pokemon-image">
+                    <img src="{{ url_for('static', filename='pokemonPictures/' + pokemon.name.lower() + '.avif') }}" 
+                         alt="{{ pokemon.name }}" 
+                         onerror="this.src='{{ url_for('static', filename='pokemonPictures/default.png') }}'">
+                </div>
+                
+                <div class="pokemon-number">#{{ "%03d"|format(pokemon.pokedex_number) }}</div>
+                
+                <div class="pokemon-name{% if pokemon.legendary %} legendary{% endif %}">
+                    {{ pokemon.name }}
+                    {% if pokemon.legendary %}⭐{% endif %}
+                </div>
+                
+                <div class="pokemon-types">
+                    {% for type in pokemon.type_list %}
+                        <span class="type-badge" style="background-color: {{ type.color }};">
+                            {{ type.name }}
+                        </span>
+                    {% endfor %}
+                </div>
+            </a>
+            
+            <form method="POST" action="{{ url_for('delete_pokemon', pokedex_number=pokemon.pokedex_number) }}" 
+                  class="delete-form" 
+                  onsubmit="return confirm('Are you sure you want to delete {{ pokemon.name }}? This action cannot be undone.')">
+                <button type="submit" class="delete-button" aria-label="Delete {{ pokemon.name }}">
+                    🗑️
+                </button>
+            </form>
+        </div>
+    {% else %}
+        <div style="grid-column: 1 / -1; text-align: center; color: white; font-size: 1.2rem;">
+            No Pokemon found in the Pokedex yet!
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

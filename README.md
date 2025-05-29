@@ -11,9 +11,9 @@ The application follows the E/R diagram with the following entities:
 
 ## Installation and Setup
 ### Prerequisites
-- Python 3.7 or higher
+- Python installed
 - Flask
-- SQLite (comes with Python)
+- Some dependencies(under step 2)
 
 ### Step 1: Set up Python Virtual Environment
 # Create project directory

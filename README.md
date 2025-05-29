@@ -33,11 +33,12 @@ source .venv/bin/activate
 
 
 ### Step 2: Install Dependencies
+Run the following in the terminal:
+
 pip install flask
 
 pip install -e .
 
-Then run:
 pip install -r requirements.txt
 
 ### Step 3: Set up the Application Files

@@ -16,10 +16,7 @@ The application follows the E/R diagram with the following entities:
 - Some dependencies(under step 2)
 
 ### Step 1: Set up Python Virtual Environment
-# Create project directory
-mkdir pokedex
-
-cd pokedex
+Start off by navigating to the folder pokedex_webapp in the terminal
 
 # Create virtual environment
 python -m venv .venv

@@ -18,6 +18,7 @@ The application follows the E/R diagram with the following entities:
 ### Step 1: Set up Python Virtual Environment
 # Create project directory
 mkdir pokedex
+
 cd pokedex
 
 # Create virtual environment
@@ -27,6 +28,7 @@ python -m venv .venv
 # On Windows:
 First run:
 Set-ExecutionPolicy Unrestricted -Scope Process
+
 Then run:
 .venv\Scripts\activate
 # On macOS/Linux:

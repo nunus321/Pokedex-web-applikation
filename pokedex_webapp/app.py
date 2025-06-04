@@ -5,6 +5,8 @@ import re
 
 from database import init_db, db_connection
 
+init_db()
+
 app = Flask(__name__)
 app.secret_key = "1234"
 
@@ -309,5 +311,4 @@ def delete_pokemon(pokedex_number):
 
 
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True)

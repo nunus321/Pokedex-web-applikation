@@ -1,5 +1,6 @@
 import sqlite3
-import os
+
+from data import regions
 from data import abilities_data
 from data import pokemon_abilities_data
 from data import pokemon_data
@@ -7,34 +8,40 @@ from data import type_effectiveness_data
 from data import types_data
 from data import pokemon_types_data
 
-DATABASE = 'pokedex.db'
+DATABASE = "pokedex.db"
 
-def setup_database():
-    # Remove existing database to start fresh
-    if os.path.exists(DATABASE):
-        os.remove(DATABASE)
-    
+
+def db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
-    
-    # Create tables
-    conn.execute('''
-        CREATE TABLE regions (
+    return conn
+
+
+def init_db():
+    conn = db_connection()
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS regions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE
         )
-    ''')
-    
-    conn.execute('''
-        CREATE TABLE types (
+    """
+    )
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS types (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
             color TEXT
         )
-    ''')
-    
-    conn.execute('''
-        CREATE TABLE pokemon (
+    """
+    )
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pokemon (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             pokedex_number INTEGER NOT NULL UNIQUE,
             name TEXT NOT NULL,
@@ -53,10 +60,12 @@ def setup_database():
             habitat TEXT,
             FOREIGN KEY (region_id) REFERENCES regions (id)
         )
-    ''')
-    
-    conn.execute('''
-        CREATE TABLE pokemon_types (
+    """
+    )
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pokemon_types (
             pokemon_id INTEGER,
             type_id INTEGER,
             is_first_type BOOLEAN DEFAULT TRUE,
@@ -64,11 +73,12 @@ def setup_database():
             FOREIGN KEY (pokemon_id) REFERENCES pokemon (id),
             FOREIGN KEY (type_id) REFERENCES types (id)
         )
-    ''')
-    
-    # Type effectiveness table
-    conn.execute('''
-        CREATE TABLE type_effectiveness (
+    """
+    )
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS type_effectiveness (
             attacking_type_id INTEGER,
             defending_type_id INTEGER,
             multiplier REAL,
@@ -76,19 +86,22 @@ def setup_database():
             FOREIGN KEY (attacking_type_id) REFERENCES types (id),
             FOREIGN KEY (defending_type_id) REFERENCES types (id)
         )
-    ''')
-    
-    # Pokemon abilities
-    conn.execute('''
-        CREATE TABLE abilities (
+    """
+    )
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS abilities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
             description TEXT
         )
-    ''')
-    
-    conn.execute('''
-        CREATE TABLE pokemon_abilities (
+    """
+    )
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pokemon_abilities (
             pokemon_id INTEGER,
             ability_id INTEGER,
             is_hidden BOOLEAN DEFAULT FALSE,
@@ -96,55 +109,67 @@ def setup_database():
             FOREIGN KEY (pokemon_id) REFERENCES pokemon (id),
             FOREIGN KEY (ability_id) REFERENCES abilities (id)
         )
-    ''')
-    
-    # Insert regions
-    regions = [
-        ('Kanto',), ('Johto',), ('Hoenn',), ('Sinnoh',), 
-        ('Unova',), ('Kalos',), ('Alola',), ('Galar',)
-    ]
-    conn.executemany('INSERT INTO regions (name) VALUES (?)', regions)
+    """
+    )
 
-    conn.executemany('INSERT INTO types (name, color) VALUES (?, ?)', types_data)
-    
+    # Insert sample data
+    insert_sample_data(conn)
+    conn.commit()
+    conn.close()
 
-    conn.executemany('INSERT INTO abilities (name, description) VALUES (?, ?)', abilities_data)
-    
+
+def insert_sample_data(conn):
+    conn.executemany("INSERT OR IGNORE INTO regions (name) VALUES (?)", regions)
+
     conn.executemany(
-    '''
+        "INSERT OR IGNORE INTO types (name, color) VALUES (?, ?)", types_data
+    )
+
+    conn.executemany(
+        "INSERT OR IGNORE INTO abilities (name, description) VALUES (?, ?)",
+        abilities_data,
+    )
+
+    conn.executemany(
+        """
     INSERT OR IGNORE INTO type_effectiveness
         (attacking_type_id, defending_type_id, multiplier)
     VALUES (?, ?, ?)
-    ''',
-    type_effectiveness_data
-)
+    """,
+        type_effectiveness_data,
+    )
     conn.executemany(
-    '''
+        """
     INSERT OR IGNORE INTO type_effectiveness
         (attacking_type_id, defending_type_id, multiplier)
     VALUES (?, ?, ?)
-    ''',
-    type_effectiveness_data
-)
+    """,
+        type_effectiveness_data,
+    )
 
-    conn.executemany('''INSERT INTO pokemon 
+    conn.executemany(
+        """INSERT OR IGNORE INTO pokemon 
                        (pokedex_number, name, form, average_height, average_weight, legendary, region_id,
                         base_hp, base_attack, base_defense, base_special_attack, base_special_defense, base_speed,
                         description, habitat) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', pokemon_data)
-    
-    conn.executemany('''INSERT INTO pokemon_types 
-                       (pokemon_id, type_id, is_first_type) 
-                       VALUES (?, ?, ?)''', pokemon_types_data)
-    
-    
-    conn.executemany('''INSERT INTO pokemon_abilities 
-                       (pokemon_id, ability_id, is_hidden) 
-                       VALUES (?, ?, ?)''', pokemon_abilities_data)
-    
-    conn.commit()
-    conn.close()
-    print("Enhanced database setup complete! Added 3 Pokemon with full stats and type effectiveness.")
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        pokemon_data,
+    )
 
-if __name__ == '__main__':
-    setup_database()
+    conn.executemany(
+        """INSERT OR IGNORE INTO pokemon_types 
+                       (pokemon_id, type_id, is_first_type) 
+                       VALUES (?, ?, ?)""",
+        pokemon_types_data,
+    )
+
+    conn.executemany(
+        """INSERT OR IGNORE INTO pokemon_abilities 
+                       (pokemon_id, ability_id, is_hidden) 
+                       VALUES (?, ?, ?)""",
+        pokemon_abilities_data,
+    )
+
+
+if __name__ == "__main__":
+    init_db()

@@ -16,7 +16,7 @@
 </head>
 <body class="bg-light">
 
-  <!-- ===== HEADER / NAVBAR ===== -->
+  <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
     <div class="container">
       <a class="navbar-brand fw-bold" href="{{ url_for('pokedex') }}">Pokedex</a>
@@ -45,7 +45,7 @@
     </div>
   </nav>
 
-  <!-- FLASH MESSAGES -->
+  <!-- Flash Messages -->
   <div class="container">
     {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -61,7 +61,7 @@
     {% endwith %}
   </div>
 
-  <!-- MAIN CONTENT -->
+  <!-- Main Content -->
   <div class="container">
     {% block content %}{% endblock %}
   </div>

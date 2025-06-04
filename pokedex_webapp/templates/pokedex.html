@@ -27,7 +27,7 @@
                 #{{ "%03d"|format(pokemon.pokedex_number) }}
               </h6>
 
-              <!-- Name (add legendary star if needed) -->
+              <!-- Name (add legendary star when legendary) -->
               <h5 class="card-title">
                 <a
                   href="{{ url_for('pokemon_detail', pokedex_number=pokemon.pokedex_number) }}"
@@ -47,23 +47,6 @@
                   </span>
                 {% endfor %}
               </div>
-            </div>
-
-            <!-- Delete Button Overlay -->
-            <div class="card-footer bg-transparent border-0 text-end">
-              <form
-                method="POST"
-                action="{{ url_for('delete_pokemon', pokedex_number=pokemon.pokedex_number) }}"
-                onsubmit="return confirm('Are you sure you want to delete {{ pokemon.name }}?');"
-              >
-                <button
-                  type="submit"
-                  class="btn btn-sm btn-outline-secondary"
-                  aria-label="Delete {{ pokemon.name }}"
-                >
-                  🗑️
-                </button>
-              </form>
             </div>
           </div>
         </div>

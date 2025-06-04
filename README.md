@@ -8,7 +8,6 @@ The application follows the E/R diagram with the following entities:
 - **Regions**: Pokemon regions (Kanto, Johto, etc.)
 - **Pokemon-Types**: Many-to-many relationship for dual-type Pokemon
 
-
 ## Installation and Setup
 ### Prerequisites
 - Python installed
@@ -35,43 +34,10 @@ source .venv/bin/activate
 ### Step 2: Install Dependencies
 Run the following in the terminal:
 
-pip install flask
-
-pip install -e .
-
 pip install -r requirements.txt
 
-### Step 3: Set up the Application Files
-Check that the files are in the correct structure:
-```
-pokedex/
-│
-├── app.py                 # Main Flask application
-├── setup_db.py          # Database setup script
-├── requirements.txt      # Python dependencies
-├── data.py           # Pokemon data collection
-└── templates/           # HTML templates
-│   ├── base.html
-│   ├── pokedex.html
-│   ├── pokemon_detail.html
-│   └── add_pokemon.html
-```
-
-### Step 4: Initialize Database with Sample Data
-python setup_db.py
-
-### Step 5: Run the Application
+### Step 3: Run the Application
 python app.py
-
-### Step 6: Access the web application
-After running the code in step 5 the url link will be printed. Copy the url and insert it in your browser to access the web application.
-
-It could for instance look like this:
-"The application will be available at `http://123.0.0.2:5000`"
-
-
-
-
 
 ## Usage and features of the web application
 ### Browsing Pokemon

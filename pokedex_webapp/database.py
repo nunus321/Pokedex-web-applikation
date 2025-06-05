@@ -62,7 +62,7 @@ def init_db():
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS types (
-            id INTEGER PRIMARY KEY AUTOINCRflask documentation !googlEMENT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
             color TEXT
         )

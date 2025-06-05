@@ -340,11 +340,9 @@ def delete_pokemon(pokedex_number):
     try:
         pokemon_id = pokemon["id"]
 
-        # delete pokemon (Delete related records first (foreign key constraints))
+        # delete related records first (foreign key constraints)
         conn.execute("DELETE FROM pokemon_types WHERE pokemon_id = ?", (pokemon_id,))
-        conn.execute(
-            "DELETE FROM pokemon_abilities WHERE pokemon_id = ?", (pokemon_id,)
-        )
+        conn.execute("DELETE FROM pokemon_abilities WHERE pokemon_id = ?", (pokemon_id,))
 
         # delete the pokemon
         conn.execute("DELETE FROM pokemon WHERE id = ?", (pokemon_id,))

@@ -3,56 +3,57 @@
 {% block title %}Pokedex – Browse Pokémon{% endblock %}
 
 {% block content %}
-  <h2 class="mb-4">All Pokémon</h2>
+<h2 class="mb-4">All Pokémon</h2>
 
-  {% if pokemon_list %}
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-      {% for pokemon in pokemon_list %}
-        <div class="col">
-          <div class="card h-100 shadow-sm">
-            
-            <!-- Pokémon Image -->
-            <a href="{{ url_for('pokemon_detail', pokedex_number=pokemon.pokedex_number) }}">
-              <img
-                src="{{ url_for('static', filename='pokemonPictures/' + pokemon.name.lower() + '.avif') }}"
-                class="card-img-top bg-white p-3"
-                alt="{{ pokemon.name }}"
-                onerror="this.src='{{ url_for('static', filename='pokemonPictures/default.png') }}';"
-              />
-            </a>
+{% if pokemon_list %}
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+  {% for pokemon in pokemon_list %}
+  <div class="col">
+    <div class="card h-100 shadow-sm">
+      <!-- Pokémon Image -->
+      <a
+        href="{{ url_for('pokemon_detail', pokedex_number=pokemon.pokedex_number) }}"
+      >
+        <img
+          src="{{ url_for('static', filename='pokemonPictures/' + pokemon.name.lower() + '.avif') }}"
+          class="card-img-top bg-white p-3"
+          alt="{{ pokemon.name }}"
+          onerror="this.src='{{ url_for('static', filename='pokemonPictures/default.png') }}';"
+        />
+      </a>
 
-            <div class="card-body text-center">
-              <!-- Pokedex Number -->
-              <h6 class="card-subtitle text-muted mb-1">
-                #{{ "%03d"|format(pokemon.pokedex_number) }}
-              </h6>
+      <div class="card-body text-center">
+        <!-- Pokedex Number -->
+        <h6 class="card-subtitle text-muted mb-1">
+          #{{ "%03d"|format(pokemon.pokedex_number) }}
+        </h6>
 
-              <!-- Name (add legendary star when legendary) -->
-              <h5 class="card-title">
-                <a
-                  href="{{ url_for('pokemon_detail', pokedex_number=pokemon.pokedex_number) }}"
-                  class="text-decoration-none {{ 'text-warning' if pokemon.legendary else 'text-dark' }}"
-                >
-                  {{ pokemon.name }}
-                  {% if pokemon.legendary %}★{% endif %}
-                </a>
-              </h5>
+        <!-- Name (add legendary star when legendary) -->
+        <h5 class="card-title">
+          <a
+            href="{{ url_for('pokemon_detail', pokedex_number=pokemon.pokedex_number) }}"
+            class="text-decoration-none {{ 'text-warning' if pokemon.legendary else 'text-dark' }}"
+          >
+            {{ pokemon.name }} {% if pokemon.legendary %}★{% endif %}
+          </a>
+        </h5>
 
-              <!-- Type Badges -->
-              <div class="d-flex justify-content-center flex-wrap">
-                {% for type in pokemon.type_list %}
-                  <span class="badge text-white mx-1 my-1"
-                        style="background-color: {{ type.color }};">
-                    {{ type.name }}
-                  </span>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
+        <!-- Type Badges -->
+        <div class="d-flex justify-content-center flex-wrap">
+          {% for type in pokemon.type_list %}
+          <span
+            class="badge text-white mx-1 my-1"
+            style="background-color: {{ type.color }};"
+          >
+            {{ type.name }}
+          </span>
+          {% endfor %}
         </div>
-      {% endfor %}
+      </div>
     </div>
-  {% else %}
-    <div class="alert alert-info">No Pokémon found in the Pokedex yet!</div>
-  {% endif %}
-{% endblock %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">No Pokémon found in the Pokedex yet!</div>
+{% endif %} {% endblock %}

@@ -3,231 +3,225 @@
 {% block title %}{{ pokemon.name }} – Pokedex{% endblock %}
 
 {% block content %}
-  <!-- Back Button -->
-  <div class="mb-3">
-    <a href="{{ url_for('pokedex') }}" class="btn btn-outline-secondary">
-      ← Back to All Pokémon
-    </a>
-  </div>
+<!-- Back Button -->
+<div class="mb-3">
+  <a href="{{ url_for('pokedex') }}" class="btn btn-outline-secondary">
+    ← Back to All Pokémon
+  </a>
+</div>
 
-  <div class="card shadow-sm mb-4">
-    <div class="row g-0">
-      <!-- Left Column: Image & Types -->
-      <div class="col-md-4 text-center bg-white p-4">
-        <img
-          src="{{ url_for('static', filename='pokemonPictures/' + pokemon.name.lower() + '.avif') }}"
-          class="img-fluid rounded-circle"
-          alt="{{ pokemon.name }}"
-          style="max-width: 200px;"
-          onerror="this.src='{{ url_for('static', filename='pokemonPictures/default.png') }}';"
-        />
-        <h3 class="mt-3 {{ 'text-warning' if pokemon.legendary else 'text-dark' }}">
-          {{ pokemon.name }}
-          {% if pokemon.legendary %}★{% endif %}
-        </h3>
-        <h6 class="text-muted">#{{ "%03d"|format(pokemon.pokedex_number) }}</h6>
+<div class="card shadow-sm mb-4">
+  <div class="row g-0">
+    <!-- Left Column: Image & Types -->
+    <div class="col-md-4 text-center bg-white p-4">
+      <img
+        src="{{ url_for('static', filename='pokemonPictures/' + pokemon.name.lower() + '.avif') }}"
+        class="img-fluid rounded-circle"
+        alt="{{ pokemon.name }}"
+        style="max-width: 200px"
+        onerror="this.src='{{ url_for('static', filename='pokemonPictures/default.png') }}';"
+      />
+      <h3
+        class="mt-3 {{ 'text-warning' if pokemon.legendary else 'text-dark' }}"
+      >
+        {{ pokemon.name }} {% if pokemon.legendary %}★{% endif %}
+      </h3>
+      <h6 class="text-muted">#{{ "%03d"|format(pokemon.pokedex_number) }}</h6>
 
-        <!-- Type Badges -->
-        <div class="mt-3 d-flex justify-content-center flex-wrap">
-          {% for type in types %}
-            <span class="badge text-white mx-1 my-1 px-3 py-2"
-                  style="background-color: {{ type.color }}; font-size: 0.9rem;">
-              {{ type.name }}
-            </span>
-          {% endfor %}
-        </div>
-
-        {% if pokemon.form %}
-          <p class="mt-2 fst-italic">Form: {{ pokemon.form }}</p>
-        {% endif %}
+      <!-- Type Badges -->
+      <div class="mt-3 d-flex justify-content-center flex-wrap">
+        {% for type in types %}
+        <span
+          class="badge text-white mx-1 my-1 px-3 py-2"
+          style="background-color: {{ type.color }}; font-size: 0.9rem;"
+        >
+          {{ type.name }}
+        </span>
+        {% endfor %}
       </div>
 
-      <!-- Right Column: Details -->
-      <div class="col-md-8">
-        <div class="card-body">
-          <!-- Basic Info Row -->
-          <div class="row mb-4">
-            {% if pokemon.region_name %}
-              <div class="col-6 mb-2">
-                <h6 class="text-muted">Region</h6>
-                <p class="mb-0">{{ pokemon.region_name }}</p>
-              </div>
-            {% endif %}
-            {% if pokemon.habitat %}
-              <div class="col-6 mb-2">
-                <h6 class="text-muted">Habitat</h6>
-                <p class="mb-0">{{ pokemon.habitat }}</p>
-              </div>
-            {% endif %}
-            <div class="col-6 mb-2">
-              <h6 class="text-muted">Legendary</h6>
-              <p class="mb-0">{{ "Yes" if pokemon.legendary else "No" }}</p>
-            </div>
-            {% if pokemon.average_height %}
-              <div class="col-6 mb-2">
-                <h6 class="text-muted">Height</h6>
-                <p class="mb-0">{{ pokemon.average_height }} m</p>
-              </div>
-            {% endif %}
-            {% if pokemon.average_weight %}
-              <div class="col-6 mb-2">
-                <h6 class="text-muted">Weight</h6>
-                <p class="mb-0">{{ pokemon.average_weight }} kg</p>
-              </div>
-            {% endif %}
+      {% if pokemon.form %}
+      <p class="mt-2 fst-italic">Form: {{ pokemon.form }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Details -->
+    <div class="col-md-8">
+      <div class="card-body">
+        <!-- Basic Info Row -->
+        <div class="row mb-4">
+          {% if pokemon.region_name %}
+          <div class="col-6 mb-2">
+            <h6 class="text-muted">Region</h6>
+            <p class="mb-0">{{ pokemon.region_name }}</p>
           </div>
-
-          <!-- Description -->
-          {% if pokemon.description %}
-            <div class="mb-4">
-              <h5>Description</h5>
-              <p class="mb-0">{{ pokemon.description }}</p>
-            </div>
+          {% endif %} {% if pokemon.habitat %}
+          <div class="col-6 mb-2">
+            <h6 class="text-muted">Habitat</h6>
+            <p class="mb-0">{{ pokemon.habitat }}</p>
+          </div>
           {% endif %}
-
-          <!-- Base Stats -->
-          {% set any_stats = pokemon.base_hp or pokemon.base_attack or pokemon.base_defense 
-                              or pokemon.base_special_attack or pokemon.base_special_defense 
-                              or pokemon.base_speed %}
-          {% if any_stats %}
-            <div class="mb-4">
-              <h5>Base Stats</h5>
-              <div class="row g-3">
-                {% if pokemon.base_hp %}
-                  <div class="col-6 col-lg-4">
-                    <div class="card bg-light h-100 text-center">
-                      <div class="card-body">
-                        <h6 class="text-muted mb-1">HP</h6>
-                        <h5 class="mb-0">{{ pokemon.base_hp }}</h5>
-                      </div>
-                    </div>
-                  </div>
-                {% endif %}
-                {% if pokemon.base_attack %}
-                  <div class="col-6 col-lg-4">
-                    <div class="card bg-light h-100 text-center">
-                      <div class="card-body">
-                        <h6 class="text-muted mb-1">Attack</h6>
-                        <h5 class="mb-0">{{ pokemon.base_attack }}</h5>
-                      </div>
-                    </div>
-                  </div>
-                {% endif %}
-                {% if pokemon.base_defense %}
-                  <div class="col-6 col-lg-4">
-                    <div class="card bg-light h-100 text-center">
-                      <div class="card-body">
-                        <h6 class="text-muted mb-1">Defense</h6>
-                        <h5 class="mb-0">{{ pokemon.base_defense }}</h5>
-                      </div>
-                    </div>
-                  </div>
-                {% endif %}
-                {% if pokemon.base_special_attack %}
-                  <div class="col-6 col-lg-4">
-                    <div class="card bg-light h-100 text-center">
-                      <div class="card-body">
-                        <h6 class="text-muted mb-1">Sp. Attack</h6>
-                        <h5 class="mb-0">{{ pokemon.base_special_attack }}</h5>
-                      </div>
-                    </div>
-                  </div>
-                {% endif %}
-                {% if pokemon.base_special_defense %}
-                  <div class="col-6 col-lg-4">
-                    <div class="card bg-light h-100 text-center">
-                      <div class="card-body">
-                        <h6 class="text-muted mb-1">Sp. Defense</h6>
-                        <h5 class="mb-0">{{ pokemon.base_special_defense }}</h5>
-                      </div>
-                    </div>
-                  </div>
-                {% endif %}
-                {% if pokemon.base_speed %}
-                  <div class="col-6 col-lg-4">
-                    <div class="card bg-light h-100 text-center">
-                      <div class="card-body">
-                        <h6 class="text-muted mb-1">Speed</h6>
-                        <h5 class="mb-0">{{ pokemon.base_speed }}</h5>
-                      </div>
-                    </div>
-                  </div>
-                {% endif %}
-              </div>
-            </div>
+          <div class="col-6 mb-2">
+            <h6 class="text-muted">Legendary</h6>
+            <p class="mb-0">{{ "Yes" if pokemon.legendary else "No" }}</p>
+          </div>
+          {% if pokemon.average_height %}
+          <div class="col-6 mb-2">
+            <h6 class="text-muted">Height</h6>
+            <p class="mb-0">{{ pokemon.average_height }} m</p>
+          </div>
+          {% endif %} {% if pokemon.average_weight %}
+          <div class="col-6 mb-2">
+            <h6 class="text-muted">Weight</h6>
+            <p class="mb-0">{{ pokemon.average_weight }} kg</p>
+          </div>
           {% endif %}
+        </div>
 
-          <!-- Abilities -->
-          {% if abilities %}
-            <div class="mb-4">
-              <h5>Abilities</h5>
-              <ul class="list-group">
-                {% for ability in abilities %}
-                  <li class="list-group-item">
-                    <strong>{{ ability.name }}</strong>
-                    {% if ability.is_hidden %}
-                      <span class="badge bg-secondary ms-2">Hidden</span>
-                    {% endif %}
-                    {% if ability.description %}
-                      <p class="mb-0 small">{{ ability.description }}</p>
-                    {% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
-            </div>
-          {% endif %}
+        <!-- Description -->
+        {% if pokemon.description %}
+        <div class="mb-4">
+          <h5>Description</h5>
+          <p class="mb-0">{{ pokemon.description }}</p>
+        </div>
+        {% endif %}
 
-          <!-- Type Effectiveness -->
-          <div class="mb-4">
-            <h5>Type Effectiveness</h5>
-
-            {% if weaknesses %}
-              <div class="mb-3">
-                <h6 class="text-danger">Weak Against ({{ weaknesses|length }})</h6>
-                <div class="d-flex flex-wrap">
-                  {% for weakness in weaknesses %}
-                    <span class="badge text-white me-2 mb-2"
-                          style="background-color: {{ weakness.color }};">
-                      {{ weakness.name }} ×{{ weakness.multiplier }}
-                    </span>
-                  {% endfor %}
+        <!-- Base Stats -->
+        {% set any_stats = pokemon.base_hp or pokemon.base_attack or
+        pokemon.base_defense or pokemon.base_special_attack or
+        pokemon.base_special_defense or pokemon.base_speed %} {% if any_stats %}
+        <div class="mb-4">
+          <h5>Base Stats</h5>
+          <div class="row g-3">
+            {% if pokemon.base_hp %}
+            <div class="col-6 col-lg-4">
+              <div class="card bg-light h-100 text-center">
+                <div class="card-body">
+                  <h6 class="text-muted mb-1">HP</h6>
+                  <h5 class="mb-0">{{ pokemon.base_hp }}</h5>
                 </div>
               </div>
-            {% endif %}
-
-            {% if strengths %}
-              <div>
-                <h6 class="text-success">Resistant To ({{ strengths|length }})</h6>
-                <div class="d-flex flex-wrap">
-                  {% for strength in strengths %}
-                    <span class="badge text-white me-2 mb-2"
-                          style="background-color: {{ strength.color }};">
-                      {{ strength.name }} ×{{ strength.multiplier }}
-                    </span>
-                  {% endfor %}
+            </div>
+            {% endif %} {% if pokemon.base_attack %}
+            <div class="col-6 col-lg-4">
+              <div class="card bg-light h-100 text-center">
+                <div class="card-body">
+                  <h6 class="text-muted mb-1">Attack</h6>
+                  <h5 class="mb-0">{{ pokemon.base_attack }}</h5>
                 </div>
               </div>
-            {% endif %}
-
-            {% if not weaknesses and not strengths %}
-              <p class="text-muted">Type effectiveness data not available.</p>
+            </div>
+            {% endif %} {% if pokemon.base_defense %}
+            <div class="col-6 col-lg-4">
+              <div class="card bg-light h-100 text-center">
+                <div class="card-body">
+                  <h6 class="text-muted mb-1">Defense</h6>
+                  <h5 class="mb-0">{{ pokemon.base_defense }}</h5>
+                </div>
+              </div>
+            </div>
+            {% endif %} {% if pokemon.base_special_attack %}
+            <div class="col-6 col-lg-4">
+              <div class="card bg-light h-100 text-center">
+                <div class="card-body">
+                  <h6 class="text-muted mb-1">Sp. Attack</h6>
+                  <h5 class="mb-0">{{ pokemon.base_special_attack }}</h5>
+                </div>
+              </div>
+            </div>
+            {% endif %} {% if pokemon.base_special_defense %}
+            <div class="col-6 col-lg-4">
+              <div class="card bg-light h-100 text-center">
+                <div class="card-body">
+                  <h6 class="text-muted mb-1">Sp. Defense</h6>
+                  <h5 class="mb-0">{{ pokemon.base_special_defense }}</h5>
+                </div>
+              </div>
+            </div>
+            {% endif %} {% if pokemon.base_speed %}
+            <div class="col-6 col-lg-4">
+              <div class="card bg-light h-100 text-center">
+                <div class="card-body">
+                  <h6 class="text-muted mb-1">Speed</h6>
+                  <h5 class="mb-0">{{ pokemon.base_speed }}</h5>
+                </div>
+              </div>
+            </div>
             {% endif %}
           </div>
+        </div>
+        {% endif %}
 
-          <!-- Delete Button -->
+        <!-- Abilities -->
+        {% if abilities %}
+        <div class="mb-4">
+          <h5>Abilities</h5>
+          <ul class="list-group">
+            {% for ability in abilities %}
+            <li class="list-group-item">
+              <strong>{{ ability.name }}</strong>
+              {% if ability.is_hidden %}
+              <span class="badge bg-secondary ms-2">Hidden</span>
+              {% endif %} {% if ability.description %}
+              <p class="mb-0 small">{{ ability.description }}</p>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <!-- Type Effectiveness -->
+        <div class="mb-4">
+          <h5>Type Effectiveness</h5>
+
+          {% if weaknesses %}
+          <div class="mb-3">
+            <h6 class="text-danger">Weak Against ({{ weaknesses|length }})</h6>
+            <div class="d-flex flex-wrap">
+              {% for weakness in weaknesses %}
+              <span
+                class="badge text-white me-2 mb-2"
+                style="background-color: {{ weakness.color }};"
+              >
+                {{ weakness.name }} ×{{ weakness.multiplier }}
+              </span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %} {% if strengths %}
           <div>
-            <form
-              method="POST"
-              action="{{ url_for('delete_pokemon', pokedex_number=pokemon.pokedex_number) }}"
-              onsubmit="return confirm('Are you sure you want to delete {{ pokemon.name }}? This action cannot be undone.')"
-            >
-              <button type="submit" class="btn btn-danger">
-                🗑️ Delete Pokémon
-              </button>
-            </form>
+            <h6 class="text-success">Resistant To ({{ strengths|length }})</h6>
+            <div class="d-flex flex-wrap">
+              {% for strength in strengths %}
+              <span
+                class="badge text-white me-2 mb-2"
+                style="background-color: {{ strength.color }};"
+              >
+                {{ strength.name }} ×{{ strength.multiplier }}
+              </span>
+              {% endfor %}
+            </div>
           </div>
+          {% endif %} {% if not weaknesses and not strengths %}
+          <p class="text-muted">Type effectiveness data not available.</p>
+          {% endif %}
+        </div>
+
+        <!-- Delete Button -->
+        <div>
+          <form
+            method="POST"
+            action="{{ url_for('delete_pokemon', pokedex_number=pokemon.pokedex_number) }}"
+            onsubmit="return confirm('Are you sure you want to delete {{ pokemon.name }}? This action cannot be undone.')"
+          >
+            <button type="submit" class="btn btn-danger">
+              🗑️ Delete Pokémon
+            </button>
+          </form>
         </div>
       </div>
     </div>
   </div>
+</div>
 {% endblock %}

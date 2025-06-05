@@ -1,6 +1,5 @@
 # Pokedex Web Application
 
-
 # E/R Diagram
 
 ![ER diagram](ER_diagram.png)
